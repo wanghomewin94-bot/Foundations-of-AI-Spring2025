@@ -38,10 +38,11 @@ class Maze:
         self.cols = len(lines[0])
         self.mazeRaw = lines
 
-        if (len(self.mazeRaw) != self.rows) or (len(self.mazeRaw[0]) != self.cols):
-            print("Maze dimensions incorrect")
-            raise SystemExit
-            return
+        # 檢查所有行是否長度一致
+        for row in lines:
+            if len(row) != self.cols:
+                print("Maze dimensions incorrect")
+                raise SystemExit
 
         for row in range(len(self.mazeRaw)):
             for col in range(len(self.mazeRaw[0])):
