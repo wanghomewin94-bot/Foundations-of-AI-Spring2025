@@ -13,6 +13,7 @@ This file contains the Maze class, which reads in a maze file and creates
 a representation of the maze that is exposed through a simple interface.
 """
 
+from operator import pos
 import re
 import copy
 from collections import Counter
@@ -76,22 +77,26 @@ class Maze:
         return (self.rows, self.cols)
 
     # Returns the list of objective positions of the maze
+    #回去目標座標的列表，deepcopy是為了避免外部修改目標列表，造成迷宮物件內部狀態不一致
     def getObjectives(self):
         return copy.deepcopy(self.__objective)
 
-
+    #就是設定下一棵要去吃的點點
     def setObjectives(self, objectives):
         self.__objective = objectives
 
-
+    #返回探索的狀態數量，作為評估演算法效率的指標
+    ##有點不懂
     def getStatesExplored(self):
         return self.__states_explored
 
     # Check if the agent can move into a specific row and column
+    #檢查移動是否合法（在邊界內且不是牆）
     def isValidMove(self, row, col):
         return row >= 0 and row < self.rows and col >= 0 and col < self.cols and not self.isWall(row, col)
 
     # Returns list of neighboing squares that can be moved to from the given row,col
+    #返回鄰近可移動的方格列表
     def getNeighbors(self, row, col):
         possibleNeighbors = [
             (row + 1, col),
@@ -99,34 +104,48 @@ class Maze:
             (row, col + 1),
             (row, col - 1)
         ]
-        neighbors = []
+        neighbors = [] ##建立一個空的鄰居列表
         for r, c in possibleNeighbors:
             if self.isValidMove(r,c):
-                neighbors.append((r,c))
-        self.__states_explored += 1
+                neighbors.append((r,c)) ##append是把符合條件的鄰居加入列表
+        self.__states_explored += 1 ##每檢查一個鄰居就把探索狀態數量加一，作為前面說的評估演算法效率的指標
+        #阿這個在part1很重要，因為要去看最後兩個演算法的效率
         return neighbors
 
     def isValidPath(self, path):
-        # check if path is in correct shape (type, not empty)
+        
+        #檢查path的格式是否正確（類型，非空）
+        #不合格的例子：
+        #path = ((1, 2), (1, 3), (2, 3))  # 用元組而不是列表 ❌
+        #path = {(1, 2), (1, 3), (2, 3)}  # 用集合 ❌
+        #path = "(1,2),(1,3)"              # 用字串 ❌
+        #合格的例子：
+        #path = [(1, 2), (1, 3), (2, 3)]  # 用列表 ✅
         if not isinstance(path, list):
             return "path must be list"
 
-        if len(path) == 0:
+        if len(path) == 0:#路徑不能是0
             return "path must not be empty"
 
-        if not isinstance(path[0], tuple):
-            return "position must be tuple"
-
-        if len(path[0]) != 2:
-            return "position must be (x, y)"
+        #tuple就是(1,2)這種東西
+        #這就只是在說位置必須是(x, y)這種格式，二維移動就是一X和Y
+        #原本是檢查path[0]，但這樣不夠全面，應該檢查整個path裡面的每一個位置，所以改成下面這個寫法
+        #檢查每個位置(pos)是否為tuple且長度為2
+        for pos in path:
+            if not isinstance(pos, tuple) or len(pos) != 2:
+                return "Invalid position format"
 
         # check single hop
-        for i in range(1, len(path)):
-            prev = path[i-1]
-            cur = path[i]
-            dist = abs((prev[1]-cur[1])+(prev[0]-cur[0]))
+        #曼哈頓距離必須是1
+        #range從1開始是因為要和前一個位置比較，len(path)是路徑長度
+        #所以她就是在說從路徑的第二個位置開始，一直到最後一個位置
+        #不從第一個位置開始是因為第一個位置沒有前一個位置可以比較
+        for i in range(1, len(path)): 
+            prev = path[i-1] #previous position
+            cur = path[i] #current position
+            dist = abs((prev[1]-cur[1])+(prev[0]-cur[0])) #[1]是X座標，[0]是Y座標
             if dist > 1:
-                return "Not single hop"
+                return "Not single hop" #一次只能移動一格
 
         # check whether it is valid move
         for pos in path:
