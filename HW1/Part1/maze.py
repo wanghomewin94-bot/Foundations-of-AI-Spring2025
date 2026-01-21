@@ -33,7 +33,7 @@ class Maze:
 
         lines = list(filter(lambda x: not re.match(r'^\s*$', x), lines))
         lines = [list(line.strip('\n')) for line in lines]
-
+#看到這兒
         self.rows = len(lines)
         self.cols = len(lines[0])
         self.mazeRaw = lines
