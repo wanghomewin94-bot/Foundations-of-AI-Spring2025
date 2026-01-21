@@ -52,21 +52,26 @@ class Maze:
                     self.__objective.append((row, col))
 
     # Returns True if the given position is the location of a wall
+    # 是否為牆壁
     def isWall(self, row, col):
         return self.mazeRaw[row][col] == self.__wallChar
 
     # Rturns True if the given position is the location of an objective
+    # 檢查該位置是否為目標
     def isObjective(self, row, col):
         return (row, col) in self.__objective
 
     # Returns the start position as a tuple of (row, column)
+    # 返回起點座標
     def getStart(self):
         return self.__start
 
+    #設定新的起點
     def setStart(self, start):
         self.__start = start
 
     # Returns the dimensions of the maze as a (row, column) tuple
+    #返回起點座標
     def getDimensions(self):
         return (self.rows, self.cols)
 
