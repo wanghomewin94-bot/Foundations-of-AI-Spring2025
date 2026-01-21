@@ -112,6 +112,9 @@ class Maze:
         #阿這個在part1很重要，因為要去看最後兩個演算法的效率
         return neighbors
 
+##兒兒真棒，已經看超過一半了，真厲害！
+
+
     def isValidPath(self, path):
         
         #檢查path的格式是否正確（類型，非空）
@@ -149,28 +152,49 @@ class Maze:
 
         # check whether it is valid move
         for pos in path:
-            if not self.isValidMove(pos[0], pos[1]):
+            if not self.isValidMove(pos[0], pos[1]):#就前面定義的那個(95行)def isValidMove(self, row, col):
                 return "Not valid move"
 
         # check whether it passes all goals
+        #self.__objective是目標列表
+        #issubset是檢查目標列表的每個目標是否都在路徑中出現過，是python提供的集合操作方法
+        #set(path)是把路徑轉換成集合，這樣可以去除重複的點
+        #拿來判斷是否全部點點都吃掉了，沒passed代表還沒吃完
         if not set(self.__objective).issubset(set(path)):
             return "Not all goals passed"
 
         # check whether it ends up at one of goals
+        # path[-1]是路徑的最後一個位置，加not就是檢查最後一個位置是否在目標列表中
+        # 翻成人話就是最後一個位置必須是目標位置之一才行
         if not path[-1] in self.__objective:
             return "Last position is not goal"
 
         # check for duplication
+        # set(path)是把路徑轉換成集合，這樣可以去除重複的點
+        # len(set(path)) != len(path)就是檢查路徑中是否有重複的點，如果有重複的點，就進行以下的檢查
         if len(set(path)) != len(path):
-            c = Counter(path)
+            c = Counter(path) #Counter是collections模組提供的工具，可以計算可迭代對象中每個元素出現的次數
+            #下面這句比較難理解喔兒兒
+            #dup_dots是找出所有在路徑中出現超過一次的點，不然就會變成同個位置被吃掉好幾次
+            #c就是計算每個點出現次數的字典，c.elements()是返回一個包含所有元素的迭代器，set()是把它轉換成集合以去除重複
+            #c[p] >= 2是檢查該點在路徑中出現的次數是否大於等於2，>=2的話代表被吃超過一次，打咩喔
+            #下面要加中括號是因為要建立一個列表，裡面包含所有出現超過一次的點
             dup_dots = [p for p in set(c.elements()) if c[p] >= 2]
             for p in dup_dots:
-                indices = [i for i, dot in enumerate(path) if dot == p]
-                is_dup = True
-                for i in range(len(indices) - 1):
-                    for dot in path[indices[i]+1: indices[i + 1]]:
-                        if self.isObjective(dot[0], dot[1]):
-                            is_dup = False
+                #indices是找出該重複點在路徑中所有出現的位置索引
+                #原本寫法是indices = [i for i, dot in enumerate(path) if dot == p]
+                #不過太難理解了，換個寫法，應該簡單很多
+                indices = []  # 建立空列表存放索引
+                for i in range(len(path)):  # 從0遍歷到路徑長度
+                    if path[i] == p:  # 如果這個位置等於重複點p
+                        indices.append(i)  # 把索引加入列表
+                #假設是重複的，除非發現中間有目標點，True代表是重複的，False代表不是重複的
+                #何時會變成False呢？就是在中間有目標點的時候
+                is_dup = True 
+                for i in range(len(indices) - 1):  # 逐對檢查同一點的相鄰兩次出現區間
+                    for dot in path[indices[i]+1: indices[i + 1]]: #檢查這兩次出現之間的路徑點
+                        if self.isObjective(dot[0], dot[1]): #若中間有目標點
+                            is_dup = False #false代表不是重複的
                             break
                 if is_dup:
                     return "Unnecessary path detected"
