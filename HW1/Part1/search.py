@@ -22,6 +22,7 @@ files and classes when code is run, so be careful to not modify anything else.
 from collections import deque
 import heapq
 
+#search是一個總調度函數，根據searchMethod選擇對應的搜尋演算法
 def search(maze, searchMethod):
     return {
         "bfs": bfs,
@@ -29,24 +30,30 @@ def search(maze, searchMethod):
         "astar_corner": astar_corner,
         "astar_multi": astar_multi,
         "fast": fast,
-    }.get(searchMethod)(maze)
+    }.get(searchMethod)(maze) #.get()會回傳對應的函數，並執行該函數，傳入maze參數，maze參數是一個迷宮物件
 
 
-def manhattan_distance(pos1, pos2):
+def manhattan_distance(pos1, pos2): #回傳兩個位置的曼哈頓距離，作為A*的啟發式函數
     """Calculate Manhattan distance between two positions."""
-    return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+    return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1]) #pos1和pos2是(row, col)的tuple形式
 
 
+#parent是一個字典，紀錄每個節點的父節點，用來回溯路徑，定義一個函數reconstruct_path來回溯路徑
+#start是起點，goal是終點，parent就是中間的連結
 def reconstruct_path(parent, start, goal):
     """Reconstruct path from start to goal using parent dictionary."""
-    path = []
-    current = goal
-    while current is not None:
-        path.append(current)
-        current = parent.get(current)
-    path.reverse()
-    return path
+    path = [] #建立一個空的路徑列表
+    current = goal #從終點開始回溯
+    while current is not None: #當前節點不為None時，表示還沒回到起點
+        path.append(current) #將當前節點加入路徑列表，append可以將元素加入列表的末尾
+        current = parent.get(current) #取得當前節點的父節點，繼續回溯，.get()是字典的方法，可以取得對應鍵的值
+    path.reverse() #將路徑列表反轉，因為是從終點回溯到起點，reverse()是python列表的方法，可以將列表反轉
+    return path #回傳完整的路徑列表
+#所以簡單來說它就是從goal開始，一直往parent字典中找它的父節點，直到找到start為止，然後把這些節點反轉回來，就得到從start到goal的路徑
+#欸不是阿大哥，AI直接幫我打好我想要打的總結，是有點太牛逼，真棒
 
+
+#恭喜你看了56行了，繼續加油，喔對，記得餵狗！
 
 def bfs(maze):
     """
