@@ -55,7 +55,7 @@ def reconstruct_path(parent, start, goal):
 
 #恭喜你看了56行了，繼續加油，喔對，記得餵狗！
 
-def bfs(maze):
+def bfs(maze): #廣度優先搜尋 (Breadth-First Search)
     """
     Runs BFS for part 1 of the assignment.
     
@@ -66,32 +66,42 @@ def bfs(maze):
 
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
-    start = maze.getStart()
-    objectives = maze.getObjectives()
+    #getStart()定義在maze.py中的第71行
+    #maze物件有getStart()和getObjectives()方法，分別用來取得起點和目標點
+    start = maze.getStart() #getStart()會回傳迷宮的起點位置，形式是(row, col)的tuple
+    objectives = maze.getObjectives() #getObjectives()會回傳迷宮中所有目標點的位置，形式是list of (row, col)的tuple
     
-    # For part 1, we have only one objective (single dot)
-    if not objectives:
-        return [start]
+    #在part 1，只有一個目標點（單一的點）
+    #objectives的型態是list，所以可以用if not objectives來檢查是否為空
+    if not objectives: #如果目標列表是空的，表示沒有目標點
+        return [start] #直接回傳起點作為路徑，表示不需要移動
     
-    goal = objectives[0]
+    goal = objectives[0] #就是去找下一個目標點，因為part1只有一個目標點，所以直接取list的第一個元素
     
     # BFS
-    queue = deque([start])
-    visited = {start}
-    parent = {start: None}
+    #使用deque作為隊列來實現BFS，定義在collections模組中，可參考 https://docs.python.org/zh-tw/3/library/collections.html#collections.deque
+    #collection模組定義在python標準庫中，提供了許多有用的資料結構，是python內建的功能
+    queue = deque([start]) #deque是雙端佇列，可以高效地從兩端添加和刪除元素，初始化時將起點加入隊列
+    visited = {start} #使用集合來記錄已訪問的節點，初始化時將起點加入已訪問集合
+    parent = {start: None} #使用字典來記錄每個節點的父節點，初始化時將起點的父節點設為None
+    #從第58行道地87行這邊都是在做初始化，下面才會開始真正的BFS搜尋
+    ##############################################################################
+    #############          在下面開始實作BFS演算法          ##################
+    ##############################################################################
     
-    while queue:
-        current = queue.popleft()
+    while queue: #當queue不為0時，表示還有節點要探索，繼續執行BFS；是0的話就表示所有節點都探索完了
+        current = queue.popleft() #從隊列的左端取出當前節點，popleft()是deque的方法，可以高效地從左端刪除並回傳元素
         
-        if current == goal:
-            return reconstruct_path(parent, start, goal)
+        if current == goal: #如果當前節點是目標點，表示找到了路徑
+            return reconstruct_path(parent, start, goal) #reconstruct_path()會回傳從起點到目標點的完整路徑，定義在46行到55行
         
         # Explore neighbors in the exact order returned by getNeighbors()
-        neighbors = maze.getNeighbors(current[0], current[1])
-        for neighbor in neighbors:
-            if neighbor not in visited:
-                visited.add(neighbor)
-                parent[neighbor] = current
+        #getNeighbors()定義在maze.py中的第100行，是我們自己定義的函式
+        neighbors = maze.getNeighbors(current[0], current[1]) #回傳當前節點的鄰居列表，形式是list of (row, col)的tuple
+        for neighbor in neighbors: #neighbors是鄰居列表，對每個鄰居進行迭代；neighbor是當前鄰居的(row, col)tuple
+            if neighbor not in visited: #visited是已訪問集合，檢查當前鄰居是否已被訪問過，沒有的話就進行以下操作
+                visited.add(neighbor) #把這個鄰居加入已訪問集合，表示已經訪問過了
+                parent[neighbor] = current 
                 queue.append(neighbor)
     
     # No path found
