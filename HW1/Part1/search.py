@@ -101,11 +101,11 @@ def bfs(maze): #廣度優先搜尋 (Breadth-First Search)
         for neighbor in neighbors: #neighbors是鄰居列表，對每個鄰居進行迭代；neighbor是當前鄰居的(row, col)tuple
             if neighbor not in visited: #visited是已訪問集合，檢查當前鄰居是否已被訪問過，沒有的話就進行以下操作
                 visited.add(neighbor) #把這個鄰居加入已訪問集合，表示已經訪問過了
-                parent[neighbor] = current 
-                queue.append(neighbor)
+                parent[neighbor] = current #當前位置設為鄰居的父節點，記錄路徑
+                queue.append(neighbor) #把這個鄰居加入隊列，等待後續探索，append()是deque的方法，可以高效地從右端添加元素
     
     # No path found
-    return []
+    return [] #如果隊列空了還沒找到目標點，表示沒有路徑可達，回傳空列表
 
 
 def astar(maze):
@@ -118,27 +118,50 @@ def astar(maze):
 
     @return path: a list of tuples containing the coordinates of each state in the computed path
     """
-    start = maze.getStart()
-    objectives = maze.getObjectives()
+    #getStart()和getObjectives()定義在maze.py裡面
+    start = maze.getStart() #取得起點位置
+    objectives = maze.getObjectives() #取得目標點列表
     
     # For part 1, we have only one objective (single dot)
-    if not objectives:
-        return [start]
+    if not objectives: #如果目標列表是空的，表示沒有目標點
+        return [start] #直接回傳起點作為路徑，表示不需要移動
     
-    goal = objectives[0]
+    goal = objectives[0] #取得唯一的目標點位置
     
     # A* search
     # Priority queue: (f_value, counter, position)
-    counter = 0  # To break ties consistently
-    heap = [(0, counter, start)]
-    counter += 1
+    counter = 0  #作為計數器，避免heapq在f_value相同時無法比較位置而報錯
+     #heapq是python標準庫中的一個模組，提供了堆積資料結構的實現，可以用來實現優先佇列
+     #可參考官方文件：https://docs.python.org/zh-tw/3/search.html?q=heap
+     #f_value是評估函數值，等於g_value（從起點到當前節點的實際成本）加上h_value（從當前節點到目標節點的估計成本）
+     #f(x) = g(x) + h(x)
+     #在這裡g_value是每移動一步的成本為1，所以g_value等於從起點到當前節點的步數
+     #h_value是使用曼哈頓距離作為啟發式函數，計算當前節點到目標節點的距離
+    heap = [(0, counter, start)] #初始化優先佇列，將起點加入佇列，f_value為0，counter為0
+     #heap是一個列表，裡面每個元素都是一個tuple，包含(f_value, counter, position)
+     #position是當前節點的位置，形式是(row, col)的tuple
+     #counter是用來避免f_value相同時無法比較位置而報錯
+     #所以每次加入新的節點到heap時，counter都要加1，以確保每個節點的counter值都是唯一的
+     #這樣heapq在比較f_value相同的節點時，可以用counter來決定順序，避免報錯
+     #heapq會根據tuple的第一個元素進行排序，如果第一個元素相同，則比較第二個元素，以此類推
+     #所以counter的作用就是在f_value相同時，提供一個次要的排序依據
+     #這樣就能確保heapq在處理f_value相同的節點時，不會因為無法比較位置而報錯
+    counter += 1 #增加計數器
     
-    visited = set()
-    g_cost = {start: 0}  # Cost from start
-    parent = {start: None}
+    visited = set() #使用集合來記錄已訪問的節點
+     #set是一種無序且不重複的資料結構，適合用來快速檢查元素是否存在
+
+    ##############################################################################
+    #############          在下面開始實作A*演算法          ##################
+    ##############################################################################
+    g_cost = {start: 0}  #紀錄從起點到每個節點的實際成本，初始化起點的g_cost為0
+    #g_cost是一個字典，鍵是節點位置，值是從起點到該節點的實際成本
+    #start: 0是指起點的g_cost為0，因為從起點到起點的成本為0
+    #在這裡每移動一步的成本為1，所以g_cost等於從起點到該節點的步數
+    parent = {start: None} #使用字典來記錄每個節點的父節點，初始化時將起點的父節點設為None
     
-    while heap:
-        f_value, _, current = heapq.heappop(heap)
+    while heap: #當heap 不為空時，表示還有節點要探索，繼續執行A*搜尋
+        f_value, _, current = heapq.heappop(heap) 
         
         if current in visited:
             continue
